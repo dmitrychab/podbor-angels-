@@ -1,45 +1,48 @@
 name: Build Android APK
-
+﻿
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - master
   workflow_dispatch:
-
+﻿
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-
+﻿
     steps:
-name: Скачиваем код
-uses: actions/checkout@v4
-name: Настраиваем Node.js
-uses: actions/setup-node@v4
-with:
-  node-version: "22"
-name: Настраиваем Java 21
-uses: actions/setup-java@v4
-with:
-  distribution: "temurin"
-  java-version: "21"
-name: Собираем React-приложение
-working-directory: frontend
-run: |
-  npm install
-  npm run build
-name: Создаём и синхронизируем Android-проект
-working-directory: frontend
-run: |
-  if [ ! -d "android" ]; then
-    npx cap add android
-  fi
-  npx cap sync android
-name: Компилируем APK
-working-directory: frontend/android
-run: |
-  chmod +x gradlew
-  ./gradlew assembleDebug
-name: Сохраняем готовый APK для скачивания
-uses: actions/upload-artifact@v4
-with:
-  name: podbor-angels-apk
-  path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Checkout repository
+        uses: actions/checkout@v4
+﻿
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+﻿
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+﻿
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager --licenses || true
+﻿
+      - name: Build web app
+        working-directory: frontend
+        run: npm install && npm run build
+﻿
+      - name: Add and sync Android project
+        working-directory: frontend
+        run: (test -d android || npx cap add android) && npx cap sync android
+﻿
+      - name: Build Debug APK
+        working-directory: frontend/android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+﻿
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: podbor-angels-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
