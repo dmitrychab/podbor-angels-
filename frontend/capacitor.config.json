@@ -1,0 +1,8 @@
+{
+  "appId": "ru.angels.podbor",
+  "appName": "Подбор Angels",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
